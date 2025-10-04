@@ -11,7 +11,7 @@ import {
   UIntCV,
 } from "@stacks/transactions";
 
-const CONTRACT_ADDRESS = "ST3P49R8XXQWG69S66MZASYPTTGNDKK0WW32RRJDN";
+const CONTRACT_ADDRESS = "ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM";
 const CONTRACT_NAME = "tic-tac-toe";
 
 type GameCV = {
@@ -20,6 +20,7 @@ type GameCV = {
   "is-player-one-turn": BooleanCV;
   "bet-amount": UIntCV;
   board: ListCV<UIntCV>;
+  "last-move-block": UIntCV;
   winner: OptionalCV<PrincipalCV>;
 };
 
@@ -30,6 +31,7 @@ export type Game = {
   "is-player-one-turn": boolean;
   "bet-amount": number;
   board: number[];
+  "last-move-block": number;
   winner: string | null;
 };
 
@@ -104,6 +106,7 @@ export async function getGame(gameId: number) {
     "is-player-one-turn": cvToValue(gameCV["is-player-one-turn"]),
     "bet-amount": parseInt(gameCV["bet-amount"].value.toString()),
     board: gameCV["board"].value.map((cell) => parseInt(cell.value.toString())),
+    "last-move-block": parseInt(gameCV["last-move-block"].value.toString()),
     winner:
       gameCV["winner"].type === "some" ? gameCV["winner"].value.value : null,
   };
@@ -145,4 +148,28 @@ export async function play(gameId: number, moveIndex: number, move: Move) {
   };
 
   return txOptions;
+}
+
+export async function cancelGame(gameId: number) {
+  const txOptions = {
+    contractAddress: CONTRACT_ADDRESS,
+    contractName: CONTRACT_NAME,
+    functionName: "cancel-game",
+    functionArgs: [uintCV(gameId)],
+  };
+
+  return txOptions;
+}
+
+export async function canCancelGame(gameId: number) {
+  const result = await fetchCallReadOnlyFunction({
+    contractAddress: CONTRACT_ADDRESS,
+    contractName: CONTRACT_NAME,
+    functionName: "can-cancel-game",
+    functionArgs: [uintCV(gameId)],
+    senderAddress: CONTRACT_ADDRESS,
+    network: STACKS_TESTNET,
+  });
+
+  return cvToValue(result);
 }

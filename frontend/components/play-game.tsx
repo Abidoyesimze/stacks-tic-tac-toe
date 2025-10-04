@@ -6,6 +6,7 @@ import { abbreviateAddress, explorerAddress, formatStx } from "@/lib/stx-utils";
 import Link from "next/link";
 import { useStacks } from "@/hooks/use-stacks";
 import { useState } from "react";
+import { TimeoutIndicator } from "./timeout-indicator";
 
 interface PlayGameProps {
   game: Game;
@@ -113,6 +114,8 @@ export function PlayGame({ game }: PlayGameProps) {
       {isJoinedAlready && !isMyTurn && !isGameOver && (
         <div className="text-gray-500">Waiting for opponent to play...</div>
       )}
+
+      <TimeoutIndicator game={game} />
     </div>
   );
 }
