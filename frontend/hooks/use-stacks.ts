@@ -1,4 +1,4 @@
-import { createNewGame, joinGame, Move, play } from "@/lib/contract";
+import { createNewGame, joinGame, Move, play, cancelGame, canCancelGame } from "@/lib/contract";
 import { getStxBalance } from "@/lib/stx-utils";
 import {
   AppConfig,
@@ -142,6 +142,38 @@ export function useStacks() {
     }
   }, [userData]);
 
+  async function handleCancelGame(gameId: number) {
+    if (typeof window === "undefined") return;
+
+    try {
+      if (!userData) throw new Error("User not connected");
+      const txOptions = await cancelGame(gameId);
+      await openContractCall({
+        ...txOptions,
+        appDetails,
+        onFinish: (data) => {
+          console.log(data);
+          window.alert("Sent cancel game transaction");
+        },
+        postConditionMode: PostConditionMode.Allow,
+      });
+    } catch (_err) {
+      const err = _err as Error;
+      console.error(err);
+      window.alert(err.message);
+    }
+  }
+
+  async function checkCanCancelGame(gameId: number) {
+    try {
+      return await canCancelGame(gameId);
+    } catch (_err) {
+      const err = _err as Error;
+      console.error(err);
+      return false;
+    }
+  }
+
   return {
     userData,
     stxBalance,
@@ -150,5 +182,7 @@ export function useStacks() {
     handleCreateGame,
     handleJoinGame,
     handlePlayGame,
+    handleCancelGame,
+    checkCanCancelGame,
   };
 }
